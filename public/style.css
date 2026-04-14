@@ -1,0 +1,13 @@
+    
+body { font: 25px Helvetica, Arial; }
+
+form { background: #72adff; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+
+form input { background: #a7fcff; border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+
+form button { width: 9%; background: rgba(3, 96, 255, 0.649); border: none; padding: 10px; }
+
+    #messages { list-style-type: none; margin: 0; padding: 0; }
+    #messages li { padding: 5px 10px; }
+    #messages li:nth-child(odd) { background: #eee; }
+    #messages { margin-bottom: 40px }

@@ -1,6 +1,16 @@
     
 body { font: 25px Helvetica, Arial; }
 
+.controls {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+
+  display: flex;
+  gap: 10px; /* расстояние между кнопками */
+}
+
+
 form { background: #72adff; padding: 3px; position: fixed; bottom: 0; width: 100%; }
 
 form input { background: #a7fcff; border: 0; padding: 10px; width: 90%; margin-right: .5%; }
@@ -11,3 +21,5 @@ form button { width: 9%; background: rgba(3, 96, 255, 0.649); border: none; padd
     #messages li { padding: 5px 10px; }
     #messages li:nth-child(odd) { background: #eee; }
     #messages { margin-bottom: 40px }
+
+

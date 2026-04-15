@@ -1,31 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Game Room</title>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-
-<ul id="messages"></ul>
-
-<form>
-  <div></div>
-  <input id="m" autocomplete="off" />
-  <button id="btnSend" >Send</button>
-</form>
-
-
-<div class="controls">
-  <button id="btnStart" >Start</button>
-  <button id="btnLeave">Leave</button>
-</div>
-
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-
-<script>
+src="/socket.io/socket.io.js";
+ src="https://code.jquery.com/jquery-1.11.1.js";
+  
+  
   const params = new URLSearchParams(window.location.search);
   const gameId = params.get("id");
 
@@ -68,18 +44,3 @@
     console.log(data);
     document.getElementById("messages").appendChild(li);
   });
-
-
-
-
-
-
-
-
-  
-
-
-</script>
-
-</body>
-</html>

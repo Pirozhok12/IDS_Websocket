@@ -42,6 +42,7 @@
     }
     console.log(socket.id + "socket.id")
     console.log("JOIN ОТПРАВЛЯЕМ:", gameId);
+    socket.emit('create room', gameId);
     socket.emit('join room', gameId);
   });
 
@@ -69,14 +70,6 @@
     document.getElementById("messages").appendChild(li);
   });
 
-
-
-
-
-
-
-
-  
 
 
 </script>

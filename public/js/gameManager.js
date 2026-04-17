@@ -1,7 +1,9 @@
-console.log("js is connected");
+src="/socket.io/socket.io.js"
+src="https://code.jquery.com/jquery-1.11.1.js";
+
 
 const GamesList = [];
-
+var socket = io();
 
 window.onload = () =>{
     const savedGames = JSON.parse(localStorage.getItem("Rooms")) || [];
@@ -9,7 +11,6 @@ window.onload = () =>{
     savedGames.forEach(gameId => {
         loadWorkingRooms(gameId);
     });
-
 }
 
 function createGame() {

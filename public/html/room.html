@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Game Room</title>
+  <title>Room</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -27,35 +27,33 @@
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const gameId = params.get("id");
+  const roomId = params.get("id");
 
-  console.log("ID игры:", gameId);
+  console.log("ID игры:", roomId);
 
   var socket = io();
 
   socket.on('connect', () => {
-    console.log("Подключено к серверу");
 
-    if (!gameId) {
+    if (!roomId) {
       console.warn("gameId не найден");
       return;
     }
-    console.log(socket.id + "socket.id")
-    console.log("JOIN ОТПРАВЛЯЕМ:", gameId);
-    socket.emit('create room', gameId);
-    socket.emit('join room', gameId);
+
+    socket.emit('StartCreateRoom', roomId);
+    socket.emit('join room', roomId);
   });
 
   document.querySelector("form").addEventListener("submit", function(e){
     e.preventDefault();
 
-    if (!gameId) {
-      console.warn("gameId отсутствует");
+    if (!roomId) {
+      console.warn("roomId отсутствует");
       return;
     }
 
     socket.emit('send message', {
-      gameId: gameId,
+      roomId: roomId,
       userId: socket.id,
       msg: document.getElementById("m").value
     });

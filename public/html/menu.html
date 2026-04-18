@@ -10,7 +10,7 @@
 <body>
     
 
-    <button onclick="createGame()" id="newGame">Create new game</button>
+    <button onclick="createRoom()" id="newGame">Create new game</button>
     <div>Runing games:</div>
     <div id="rooms"></div>
 
@@ -24,47 +24,42 @@
 
     
 
-const GamesList = [];
+const RoomIdList = [];
 
 var socket = io();
 
 
-
-
-
 window.onload = () =>{
-    const savedGames = JSON.parse(localStorage.getItem("Rooms")) || [];
-    GamesList.push(...savedGames);
-    savedGames.forEach(gameId => {
-        loadWorkingRooms(gameId);
-    });
+    const Ids = JSON.parse(localStorage.getItem("Rooms")) || [];
+    RoomIdList.push(...Ids);
+    Ids.forEach(roomId => {createRoomButton(roomId); });
 }
 
-function createGame() {
-    const gameId = generateId();
-    window.open(`/html/room.html?id=${gameId}`, '_blank');
-    GamesList.push(gameId)
-    localStorage.setItem("Rooms", JSON.stringify(GamesList));
-    loadWorkingRooms(gameId)
+function createRoom() {
+    const roomId = generateId();
+    window.open(`/html/room.html?id=${roomId}`, '_blank');
+    RoomIdList.push(roomId)
+    localStorage.setItem("Rooms", JSON.stringify(RoomIdList));
+    createRoomButton(roomId)
 
 }
 
-socket.on('createdRoom', (gameId) => {
-    if (!GamesList.includes(gameId)) {
-        GamesList.push(gameId);
-        localStorage.setItem("Rooms", JSON.stringify(GamesList));
-        loadWorkingRooms(gameId);
+socket.on('createdRoomBtn', (roomId) => {
+    if (!RoomIdList.includes(roomId)) {
+        RoomIdList.push(roomId);
+        localStorage.setItem("Rooms", JSON.stringify(RoomIdList));
+        createRoomButton(roomId);
     }
 });
 
 socket.on('deleteRoom',(roomId) => {
     
-    const index = GamesList.indexOf(roomId);
+    const index = RoomIdList.indexOf(roomId);
     if (index !== -1) {
-        GamesList.splice(index, 1);
+        RoomIdList.splice(index, 1);
     }
 
-    localStorage.setItem("Rooms", JSON.stringify(GamesList));
+    localStorage.setItem("Rooms", JSON.stringify(RoomIdList));
 
     const el = document.getElementById(roomId);
     if (el) el.remove();
@@ -75,13 +70,13 @@ function generateId() {
     return Math.random().toString(36).substring(2, 10);
 }
 
-function loadWorkingRooms(newItem){
+function createRoomButton(newRoomId){
     const button = document.createElement('button');
-    button.textContent = newItem;
-    button.id = newItem;
+    button.textContent = newRoomId;
+    button.id = newRoomId;
 
     button.onclick = () => {
-        window.open(`/html/room.html?id=${newItem}`, '_blank');
+        window.open(`/html/room.html?id=${newRoomId}`, '_blank');
     };
 
     document.getElementById('rooms').appendChild(button);

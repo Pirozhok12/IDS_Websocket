@@ -10,10 +10,10 @@ app.get('/', function(req, res) {
 });
 
 
-class Game{
+class Room{
 
-  constructor(gameId, hostId){
-    this.gameId = gameId;
+  constructor(roomId, hostId){
+    this.roomId = roomId;
     this.hostId = hostId;
     this.players = [hostId];
     this.currentTurn = 0;
@@ -39,77 +39,71 @@ class Game{
 
 }
 
-const games = {};
+const rooms = {};
 
 
 io.on('connection', function(socket){
 
 
 
-  socket.on('create room', function(gameId){
+  socket.on('StartCreateRoom', function(roomId){
   
-    if (!games[gameId]) {
-      games[gameId] = new Game(gameId, socket.id);
-      console.log("Создана игра:", gameId);
+    if (!rooms[roomId]) {
+      rooms[roomId] = new Room(roomId, socket.id);
+      console.log("Создана игра:", roomId);
     }
     
-    socket.gameId = gameId;
-    socket.join(gameId);
+    socket.roomId = roomId;
+    socket.join(roomId);
 
-    console.log('createdRoom', socket.gameId)
-    io.emit('createdRoom', gameId);
+    io.emit('createdRoomBtn', roomId);
   });
 
-  socket.on('join room', function(gameId){
+  socket.on('join room', function(roomId){
 
-    const game = games[gameId];
-    if (!game) return;
+    const room = rooms[roomId];
+    if (!room) return;
 
-    game.addPlayer(socket.id);
+    room.addPlayer(socket.id);
 
-    socket.gameId = gameId;
-    socket.join(gameId);
+    socket.roomId = roomId;
+    socket.join(roomId);
 
-    console.log("Пользователь/ " + socket.id + " / вошёл в комнату:", gameId);
+    console.log("Пользователь/ " + socket.id + " / вошёл в комнату:", roomId);
   });
 
   socket.on('send message', function(data) {
-    const { gameId, userId, msg } = data;
+    const { roomId, userId, msg } = data;
 
-    if (!gameId) {
-      console.log("gameId отсутствует, сообщение не отправлено");
+    if (!roomId) {
+      console.log("roomId отсутствует, сообщение не отправлено");
       return;
     }
 
-    console.log("СЕРВЕР ПОЛУЧИЛ:", data);
-
-    io.to(gameId).emit('receive message', { msg });
+    io.to(roomId).emit('receive message', { msg });
   });
 
   socket.on('disconnect', function(){
-    console.log("Пользователь/ " + socket.id + " / покинул комнату:", socket.gameId);
+    console.log("Пользователь/ " + socket.id + " / покинул комнату:", socket.roomId);
 
-    const gameId = socket.gameId;
+    const roomId = socket.roomId;
 
-    // 💥 ВОТ ЭТО ВАЖНО
-    if (!gameId) {
+    if (!roomId) {
       console.log("Игрок не был в комнате");
       return;
     }
 
-    const game = games[gameId];
-    if (!game) return;
+    const room = rooms[roomId];
+    if (!room) return;
 
-    game.removePlayer(socket.id);
+    room.removePlayer(socket.id);
 
-    socket.to(gameId).emit('user left', socket.id);
+    console.log("room.players:", room.players); 
 
-    console.log("game.players:", game.players); 
-
-    if (game.players.length === 0) {
-      io.emit("deleteRoom", gameId);
-      delete games[gameId];
-      console.log("Игра удалена:", gameId);
+    if (room.players.length === 0) {
+      io.emit("deleteRoom", roomId);
+      delete room[roomId];
+      console.log("Игра удалена:", roomId);
     }
   });
 

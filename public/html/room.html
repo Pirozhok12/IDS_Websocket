@@ -17,60 +17,16 @@
 
 
 <div class="controls">
-  <button id="btnStart" >Start</button>
-  <button id="btnLeave">Leave</button>
+  <div id="usersField"></div>
+  <div id="hostField"></div>
+  <div id="userIdField"></div>
+  <div id="roomIdField"></div>
+  <button id="btnStart">You can start</button>
 </div>
 
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const roomId = params.get("id");
-
-  console.log("ID игры:", roomId);
-
-  var socket = io();
-
-  socket.on('connect', () => {
-
-    if (!roomId) {
-      console.warn("gameId не найден");
-      return;
-    }
-
-    socket.emit('StartCreateRoom', roomId);
-    socket.emit('join room', roomId);
-  });
-
-  document.querySelector("form").addEventListener("submit", function(e){
-    e.preventDefault();
-
-    if (!roomId) {
-      console.warn("roomId отсутствует");
-      return;
-    }
-
-    socket.emit('send message', {
-      roomId: roomId,
-      userId: socket.id,
-      msg: document.getElementById("m").value
-    });
-
-    document.getElementById("m").value = "";
-  });
-
-  socket.on('receive message', function(data){
-    var li = document.createElement("li");
-    li.textContent = data.msg;
-    console.log(data);
-    document.getElementById("messages").appendChild(li);
-  });
-
-
-
-</script>
-
+<script src="/js/room.js"></script>
 </body>
 </html>

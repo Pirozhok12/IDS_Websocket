@@ -1,43 +1,20 @@
 var express = require("express");
+const Room = require('./Room');
+
+
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+
 app.use(express.static('public'));
 
-app.get('/', function(req, res) { 
-  res.sendFile(__dirname + '/public/html/menu.html'); 
+app.get('/', (req, res) => {
+  res.redirect('/html/menu.html');
 });
 
 
-class Room{
 
-  constructor(roomId, hostId){
-    this.roomId = roomId;
-    this.hostId = hostId;
-    this.players = [hostId];
-    this.currentTurn = 0;
-    this.words = [];
-  }
-
-  addPlayer(playerId){
-    if(!this.players.includes(playerId)){
-      this.players.push(playerId);
-      console.log("Игрок добавлен:", playerId);
-    }
-  }
-
-  removePlayer(playerId){
-    this.players = this.players.filter(p => p !== playerId);
-    console.log("Игрок удалён:", playerId);
-
-    if (this.currentTurn >= this.players.length) {
-      this.currentTurn = 0;
-    }
-  }
-
-
-}
 
 const rooms = {};
 
@@ -56,7 +33,7 @@ io.on('connection', function(socket){
     socket.roomId = roomId;
     socket.join(roomId);
 
-    io.emit('createdRoomBtn', roomId);
+    io.emit('createdRoom', roomId);
   });
 
   socket.on('join room', function(roomId){
@@ -64,10 +41,16 @@ io.on('connection', function(socket){
     const room = rooms[roomId];
     if (!room) return;
 
-    room.addPlayer(socket.id);
+    room.addUser(socket.id);
 
     socket.roomId = roomId;
     socket.join(roomId);
+
+    io.to(roomId).emit('infoData', {
+      host:room.hostId,
+      users:room.users.length,
+      roomId:roomId
+    });
 
     console.log("Пользователь/ " + socket.id + " / вошёл в комнату:", roomId);
   });
@@ -96,14 +79,39 @@ io.on('connection', function(socket){
     const room = rooms[roomId];
     if (!room) return;
 
-    room.removePlayer(socket.id);
+    const isHost = room.hostId === socket.id;
 
-    console.log("room.players:", room.players); 
 
-    if (room.players.length === 0) {
+    room.removeUser(socket.id);
+
+    console.log("room.users:", room.users); 
+    if(room.isUserHost(socket.id)){
+    console.log("this user is host");
+    }
+    else{
+      console.log("this user !host");
+      io.to(roomId).emit('infoData', {
+      host:room.hostId,
+      users:room.users.length,
+      roomId:roomId
+    });
+    }
+
+    
+
+    if (isHost || room.users.length === 0) {
+      io.to(roomId).emit("forceLeave"); 
       io.emit("deleteRoom", roomId);
-      delete room[roomId];
-      console.log("Игра удалена:", roomId);
+
+      delete rooms[roomId];
+
+      io.to(roomId).emit('infoData', {
+      host:"Host is disconnected",
+      users:"Host is disconnected",
+      roomId:"Host is disconnected"
+    });
+
+      console.log("Комната удалена:", roomId);
     }
   });
 

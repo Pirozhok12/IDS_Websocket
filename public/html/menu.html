@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu</title>
     <link rel="stylesheet" href="/style.css">
-    <!-- <script src="../js/gameManager.js"></script> -->
+
 </head>
 <body>
     
@@ -13,79 +13,17 @@
     <button onclick="createRoom()" id="newGame">Create new game</button>
     <div>Runing games:</div>
     <div id="rooms"></div>
+    <p></p>
+    <div>WebSocket/SocketIO, гра в слова.<p>Користувачі підключаються до сервера, можуть створити свою гру або підключитися до наявної гри. 
+        </p><p>Гравець, який створив гру, за наявності мінімум одного партнера, може дати старт. 
+            </p><p>Сервер стежить за черговістю гравців, які пишуть слова таким чином, щоб кожне нове починалося на останню літеру попереднього і не було раніше використано в грі. 
+                </p><p>Гравець може відмовитися від своєї черги, тим самим вибуваючи з гри. 
+                    </p><p>Останній, хто залишився, є переможцем.
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/menu.js"></script>
 
 </body>
-
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-
-<script>
-
-    
-
-const RoomIdList = [];
-
-var socket = io();
-
-
-window.onload = () =>{
-    const Ids = JSON.parse(localStorage.getItem("Rooms")) || [];
-    RoomIdList.push(...Ids);
-    Ids.forEach(roomId => {createRoomButton(roomId); });
-}
-
-function createRoom() {
-    const roomId = generateId();
-    window.open(`/html/room.html?id=${roomId}`, '_blank');
-    RoomIdList.push(roomId)
-    localStorage.setItem("Rooms", JSON.stringify(RoomIdList));
-    createRoomButton(roomId)
-
-}
-
-socket.on('createdRoomBtn', (roomId) => {
-    if (!RoomIdList.includes(roomId)) {
-        RoomIdList.push(roomId);
-        localStorage.setItem("Rooms", JSON.stringify(RoomIdList));
-        createRoomButton(roomId);
-    }
-});
-
-socket.on('deleteRoom',(roomId) => {
-    
-    const index = RoomIdList.indexOf(roomId);
-    if (index !== -1) {
-        RoomIdList.splice(index, 1);
-    }
-
-    localStorage.setItem("Rooms", JSON.stringify(RoomIdList));
-
-    const el = document.getElementById(roomId);
-    if (el) el.remove();
-
-})
-
-function generateId() {
-    return Math.random().toString(36).substring(2, 10);
-}
-
-function createRoomButton(newRoomId){
-    const button = document.createElement('button');
-    button.textContent = newRoomId;
-    button.id = newRoomId;
-
-    button.onclick = () => {
-        window.open(`/html/room.html?id=${newRoomId}`, '_blank');
-    };
-
-    document.getElementById('rooms').appendChild(button);
-}
-
-
-
-
-
-</script>
-
 </html>

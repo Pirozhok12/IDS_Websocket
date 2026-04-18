@@ -43,6 +43,9 @@ io.on('connection', function(socket){
 
     room.addUser(socket.id);
 
+    if(room.canStart())room.start();
+
+
     socket.roomId = roomId;
     socket.join(roomId);
 
@@ -56,14 +59,28 @@ io.on('connection', function(socket){
   });
 
   socket.on('send message', function(data) {
-    const { roomId, userId, msg } = data;
-
+    var { roomId, userId, msg } = data;
+    
+    const room = rooms[roomId];
+    if (!room) return;
+    
     if (!roomId) {
       console.log("roomId отсутствует, сообщение не отправлено");
       return;
     }
+    
+    const currentPlayer = room.users[room.currentTurn];
 
-    io.to(roomId).emit('receive message', { msg });
+    if (room.getStatus() === 'playing' && currentPlayer === socket.id) {
+      room.nextTurn();
+      io.to(roomId).emit('receive message', { msg });
+    }
+    else{
+      msg = 'it not your turn';
+      socket.emit('receive message', { msg });
+    }
+
+
   });
 
   socket.on('disconnect', function(){

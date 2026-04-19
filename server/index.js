@@ -23,18 +23,16 @@ io.on('connection', function(socket){
 
 
 
-  socket.on('StartCreateRoom', function(roomId){
-  
+socket.on('StartCreateRoom', function(roomId){
     if (!rooms[roomId]) {
       rooms[roomId] = new Room(roomId, socket.id);
-      console.log("Создана игра:", roomId);
+      console.log("Створена гра:", roomId);
     }
     
-    socket.roomId = roomId;
+    socket.roomId = roomId; 
     socket.join(roomId);
-
     io.emit('createdRoom', roomId);
-  });
+});
 
   socket.on('join room', function(roomId){
 
@@ -71,15 +69,22 @@ io.on('connection', function(socket){
     
     const currentPlayer = room.users[room.currentTurn];
 
-    if (room.getStatus() === 'playing' && currentPlayer === socket.id) {
-      room.nextTurn();
+    const resVal = room.isValidWord(msg);
+    const isMyTurn = currentPlayer === socket.id;
+    const isPlaying = room.getGameStatus() === 'playing';
+
+    if (isPlaying && isMyTurn && resVal.ok) {
+      room.applyWord(msg);
       io.to(roomId).emit('receive message', { msg });
-    }
-    else{
-      msg = 'it not your turn';
-      socket.emit('receive message', { msg });
+      return;
     }
 
+    let errorMsg;
+    if (!isPlaying)       errorMsg = 'Not start yet';
+    else if (!isMyTurn)   errorMsg = 'Not your turn';
+    else                  errorMsg = resVal.error;  
+
+    socket.emit('receive message', { msg: errorMsg });
 
   });
 

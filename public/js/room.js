@@ -67,4 +67,3 @@ socket.on("forceLeave", () => {
     document.getElementById("messages").appendChild(li);
   });
 
-

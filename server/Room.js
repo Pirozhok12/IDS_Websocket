@@ -20,9 +20,9 @@ class Room {
   }
 
 
-  // getWinner() {
-  //   return this.activePlayers.length === 1 ? this.activePlayers[0] : null;
-  // }
+  getWinner() {
+    return this.users.length === 1 ? this.users[0] : null;
+  }
 
 
   getGameStatus() {
@@ -53,12 +53,11 @@ class Room {
 
 
 
-  // skipPlayer(userId) {
-  //   this.activePlayers = this.activePlayers.filter(id => id !== userId);
-  //   if (this.currentTurn >= this.activePlayers.length) this.currentTurn = 0;
-  //   if (this.activePlayers.length <= 1) this.status = 'finished';
-  // }
-
+  skipPlayer(userId) {
+    this.users = this.users.filter(id => id !== userId);
+    if (this.currentTurn >= this.users.length) this.currentTurn = 0;
+    if (this.users.length <= 1) this.status = 'finished';
+  }
   nextTurn() {
     this.currentTurn = (this.currentTurn + 1) % this.users.length;
   }

@@ -19,54 +19,76 @@ app.get('/', (req, res) => {
 const rooms = {};
 
 
-io.on('connection', function(socket){
+io.on('connection', function (socket) {
 
 
 
-socket.on('StartCreateRoom', function(roomId){
+  socket.on('StartCreateRoom', function (roomId) {
     if (!rooms[roomId]) {
       rooms[roomId] = new Room(roomId, socket.id);
       console.log("Створена гра:", roomId);
     }
-    
-    socket.roomId = roomId; 
+
+    socket.roomId = roomId;
     socket.join(roomId);
     io.emit('createdRoom', roomId);
-});
+  });
 
-  socket.on('join room', function(roomId){
+  socket.on('join room', function (roomId) {
 
     const room = rooms[roomId];
     if (!room) return;
 
     room.addUser(socket.id);
 
-    if(room.canStart())room.start();
-
-
     socket.roomId = roomId;
     socket.join(roomId);
 
     io.to(roomId).emit('infoData', {
-      host:room.hostId,
-      users:room.users.length,
-      roomId:roomId
+      host: room.hostId,
+      users: room.users.length,
+      roomId: roomId
     });
 
     console.log("Пользователь/ " + socket.id + " / вошёл в комнату:", roomId);
   });
 
-  socket.on('send message', function(data) {
-    var { roomId, userId, msg } = data;
-    
+  socket.on('game:start', function (roomId) {
     const room = rooms[roomId];
     if (!room) return;
-    
+   
+    if (room.canStart()) room.start();
+
+    io.to(roomId).emit('game:started');
+  });
+
+  socket.on('game:skip', function (roomId) {
+    const room = rooms[roomId];
+
+    room.skipPlayer(socket.id);
+    io.to(roomId).emit('player:skipped', socket.id);
+
+    if (room.getGameStatus() === 'finished') {
+      io.to(roomId).emit('game:over', { winner: room.getWinner() });
+    } else {
+      io.to(roomId).emit('game:turn', {
+        currentPlayerId: room.currentPlayerId(),
+        lastWord: room.lastWord
+      });
+    }
+  });
+
+  socket.on('send message', function (data) {
+    var { roomId, userId, msg } = data;
+
+    const room = rooms[roomId];
+    if (!room) return;
+
     if (!roomId) {
       console.log("roomId отсутствует, сообщение не отправлено");
       return;
     }
-    
+
     const currentPlayer = room.users[room.currentTurn];
 
     const resVal = room.isValidWord(msg);
@@ -80,15 +102,15 @@ socket.on('StartCreateRoom', function(roomId){
     }
 
     let errorMsg;
-    if (!isPlaying)       errorMsg = 'Not start yet';
-    else if (!isMyTurn)   errorMsg = 'Not your turn';
-    else                  errorMsg = resVal.error;  
+    if (!isPlaying) errorMsg = 'Not start yet';
+    else if (!isMyTurn) errorMsg = 'Not your turn';
+    else errorMsg = resVal.error;
 
     socket.emit('receive message', { msg: errorMsg });
 
   });
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function () {
     console.log("Пользователь/ " + socket.id + " / покинул комнату:", socket.roomId);
 
     const roomId = socket.roomId;
@@ -106,32 +128,32 @@ socket.on('StartCreateRoom', function(roomId){
 
     room.removeUser(socket.id);
 
-    console.log("room.users:", room.users); 
-    if(room.isUserHost(socket.id)){
-    console.log("this user is host");
+    console.log("room.users:", room.users);
+    if (room.isUserHost(socket.id)) {
+      console.log("this user is host");
     }
-    else{
+    else {
       console.log("this user !host");
       io.to(roomId).emit('infoData', {
-      host:room.hostId,
-      users:room.users.length,
-      roomId:roomId
-    });
+        host: room.hostId,
+        users: room.users.length,
+        roomId: roomId
+      });
     }
 
-    
+
 
     if (isHost || room.users.length === 0) {
-      io.to(roomId).emit("forceLeave"); 
+      io.to(roomId).emit("forceLeave");
       io.emit("deleteRoom", roomId);
 
       delete rooms[roomId];
 
       io.to(roomId).emit('infoData', {
-      host:"Host is disconnected",
-      users:"Host is disconnected",
-      roomId:"Host is disconnected"
-    });
+        host: "Host is disconnected",
+        users: "Host is disconnected",
+        roomId: "Host is disconnected"
+      });
 
       console.log("Комната удалена:", roomId);
     }
@@ -140,6 +162,6 @@ socket.on('StartCreateRoom', function(roomId){
 });
 
 
-http.listen(3000, function() {
+http.listen(3000, function () {
   console.log('listening on *:3000');
 });
